@@ -32,7 +32,7 @@ export default function AddItineraryModal({ tripId, onClose, onSuccess }: {
   };
 
   return (
-    <div className="modal d-block" tabIndex={-1} style={{ background: 'rgba(0,0,0,0.5)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="modal-dialog">
         <div className="modal-content p-4 bg-white rounded shadow">
           <h2 className="text-lg font-bold mb-4">Add New Itinerary</h2>
