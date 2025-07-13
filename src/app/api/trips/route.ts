@@ -1,20 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
 
-type ItineraryPayload = {
-  trip_id: string;
-  name: string;
-  type: string;
-  date: string;
-  location?: string;
-};
-
-
-  
-
 export async function GET(request: Request) {
   try {
-
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
 

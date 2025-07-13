@@ -12,7 +12,12 @@ interface Trip {
     name: string;
     photo_url: string[];
     description: string;
-  }
+}
+
+interface ApiResponse {
+    data: Trip[];
+    total: number;
+}
   
 
 export default function TripList() {
@@ -47,12 +52,12 @@ export default function TripList() {
               headers,
             });
                   
-            const result = await res.json();
+            const result = await res.json() as ApiResponse;
     
             if (res.ok) {
                 setTrips((prev) => {
                     const existingIds = new Set(prev.map((t) => t.id));
-                    const uniqueNewTrips = (result.data as Trip[]).filter((t) => !existingIds.has(t.id));
+                    const uniqueNewTrips = result.data.filter((t) => !existingIds.has(t.id));
                     return [...prev, ...uniqueNewTrips];
                 });
                 setHasMore(result.data.length === limit);

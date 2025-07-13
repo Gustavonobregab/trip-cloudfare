@@ -47,7 +47,7 @@ export default function TripDetails({ id }: TripDetailsProps) {
 
   const refreshTrip = async () => {
     const res = await fetch(`/api/trips/${id}`);
-    const data = await res.json();
+    const data = await res.json() as Trip;
     setTrip(data);
   };
 
