@@ -49,7 +49,7 @@ export default function AddItineraryModal({
       style={{ background: 'rgba(0,0,0,0.5)' }}
     >
       <div className="bg-white p-6 rounded-lg shadow w-full max-w-md max-h-[90vh] overflow-y-auto">
-      <h2 className="text-xl font-bold mb-4 text-gray-900 !text-gray-900">Add New Itinerary</h2>
+      <h2 className="text-xl font-bold mb-4">Add New Itinerary</h2>
   
         <input
           type="text"

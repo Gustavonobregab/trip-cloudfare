@@ -90,12 +90,13 @@ export default function TripDetails({ id }: TripDetailsProps) {
       <div className="carousel-inner rounded-lg shadow">
         {trip.photo_url.map((url, index) => (
           <div key={index} className={`carousel-item ${index === 0 ? 'active' : ''}`}>
+         <div className="w-full h-[400px] overflow-hidden flex items-center justify-center bg-gray-200">
             <img
               src={url}
-              className="d-block w-100 object-cover"
               alt={`Trip photo ${index + 1}`}
-              style={{ maxHeight: '400px', objectFit: 'cover' }}
+              className="w-full h-full object-cover"
             />
+        </div>
           </div>
         ))}
       </div>
