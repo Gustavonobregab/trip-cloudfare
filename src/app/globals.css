@@ -17,6 +17,13 @@
   }
 }
 
+.page-item.active .page-link {
+  background-color: black !important;
+  color: white !important;
+  border-color: black !important;
+  box-shadow: 0 0 0 2px black !important;
+}
+
 html {
   scroll-behavior: smooth;
 }

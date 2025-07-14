@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
-import TripDetailsPage from "@/app/trip-details/[id]/page";
 import { useRouter } from 'next/navigation';
 import CreateTrip from "./CreateTrip";
 
@@ -28,9 +27,9 @@ export default function TripList() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
-    const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
+    const [totalPages, setTotalPages] = useState(1);
     const [error, setError] = useState<string | null>(null);
-    const limit = 12;
+    const limit = 8;
 
     
     const fetchTrips = async (currentPage: number) => {  
@@ -39,11 +38,9 @@ export default function TripList() {
         
         try {
             const { data: { session } } = await supabase.auth.getSession();
-            
             const headers: HeadersInit = {
               'Content-Type': 'application/json',
             };
-        
             if (session?.access_token) {
               headers['Authorization'] = `Bearer ${session.access_token}`;
             }
@@ -55,12 +52,9 @@ export default function TripList() {
             const result = await res.json() as ApiResponse;
     
             if (res.ok) {
-                setTrips((prev) => {
-                    const existingIds = new Set(prev.map((t) => t.id));
-                    const uniqueNewTrips = result.data.filter((t) => !existingIds.has(t.id));
-                    return [...prev, ...uniqueNewTrips];
-                });
+                setTrips(result.data);
                 setHasMore(result.data.length === limit);
+                setTotalPages(Math.ceil(result.total / limit));
             }
 
         } catch (error) {
@@ -88,18 +82,6 @@ export default function TripList() {
 
     return (
         <div className="w-full px-2 sm:px-6  pb-20 box-border">
-            {error && (
-                <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                    {error}
-                    <button 
-                        onClick={() => fetchTrips(1)}
-                        className="ml-4 text-red-700 underline hover:no-underline"
-                    >
-                        Try Again
-                    </button>
-                </div>
-            )}
-
             {!loading && !error && (
                   <div className="mb-4 text-center text-gray-700">
                     {user
@@ -110,16 +92,14 @@ export default function TripList() {
 
             {user && (
             <div className="mt-0 mb-6 flex justify-center">
-                <button
+               <button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition"
+                className="btn btn-dark rounded-md px-4 flex items-center gap-1"
                 >
-                 Create Trip
+                Create Trip
                 </button>
             </div>
             )}
-
-        
             <div
                 className="grid gap-6"
                 style={{
@@ -152,8 +132,46 @@ export default function TripList() {
                             </p>
                         </div>
                     </div>
+
                 ))}
             </div>
+            <ul className="pagination flex justify-center mt-6">
+                <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
+                    <button
+                    className="page-link flex items-center justify-center"
+                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                    disabled={page === 1}
+                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 6l-6 6l6 6" /></svg>
+                    </button>
+                </li>
+
+                {[...Array(totalPages)].map((_, i) => {
+                const pageNumber = i + 1;
+                return (
+                    <li key={pageNumber} className={`page-item ${pageNumber === page ? 'active' : ''}`}>
+                    <button
+                        className={`page-link border-black text-black ${
+                        pageNumber === page ? 'bg-black text-white ring-2 ring-black' : ''
+                        }`}
+                        onClick={() => setPage(pageNumber)}
+                    >
+                        {pageNumber}
+                    </button>
+                    </li>
+                );
+                })}
+
+                <li className={`page-item ${!hasMore ? 'disabled' : ''}`}>
+                    <button
+                    className="page-link flex items-center justify-center"
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={!hasMore}
+                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6l-6 6" /></svg>
+                    </button>
+                </li>
+                </ul>
 
             {trips.length === 0 && !loading && !error && (
                 <div className="flex flex-col items-center justify-center py-20">
@@ -172,7 +190,6 @@ export default function TripList() {
                 }} 
             />
             )}
-
         </div>
     );
 }
