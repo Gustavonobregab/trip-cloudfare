@@ -21,7 +21,7 @@ interface ApiResponse {
 
 export default function TripList() {
     const router = useRouter(); 
-    const { user, isLoading } = useAuth();
+    const { user, isLoading: isAuthLoading } = useAuth();
     const [trips, setTrips] = useState<Trip[]>([]);
     const [page, setPage] = useState(1);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -29,8 +29,16 @@ export default function TripList() {
     const [loading, setLoading] = useState(false);
     const [totalPages, setTotalPages] = useState(1);
     const [error, setError] = useState<string | null>(null);
+    const [isFading, setIsFading] = useState(false);
     const limit = 8;
 
+
+    const handlePageChange = (newPage: number) => {
+        setIsFading(true);
+        setTimeout(() => {
+          setPage(newPage);
+        }, 50);
+      };
     
     const fetchTrips = async (currentPage: number) => {  
         setLoading(true);
@@ -62,34 +70,23 @@ export default function TripList() {
             setError("Failed to fetch trips. Please try again.");
         } finally {
             setLoading(false);
+            setIsFading(false);
+
         }
     };
 
     
     useEffect(() => {
-        if (!isLoading) {
+        if (!isAuthLoading) {
             fetchTrips(page);
-        } 
-    }, [page, user, isLoading]);
+          }
+    }, [page, user, isAuthLoading]);
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center py-20">
-                <div className="spinner-border" role="status"></div>
-            </div>
-        );
-    }
+
 
     return (
         <div className="w-full px-2 sm:px-6  pb-20 box-border">
-            {!loading && !error && (
-                  <div className="mb-4 text-center text-gray-700">
-                    {user
-                      ? ""
-                      : "Explore some public trips:"}
-                  </div>
-                )}
-
+        
             {user && (
             <div className="mt-0 mb-6 flex justify-center">
                <button
@@ -100,13 +97,23 @@ export default function TripList() {
                 </button>
             </div>
             )}
+  
             <div
-                className="grid gap-6"
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                }}
+            className={`grid gap-6 transition-opacity duration-300 ${
+                isFading ? 'opacity-0' : 'opacity-100'
+            }`}
+            style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            }}
             >
+
+            {loading && trips.length === 0 && (
+            <div className="flex justify-center items-center min-h-[30rem] w-full col-span-full">
+                <div className="spinner-grow" role="status"></div>
+            </div>
+            )} 
+
                 {trips.map((trip) => (
                     <div
                         key={trip.id}
@@ -135,50 +142,45 @@ export default function TripList() {
 
                 ))}
             </div>
-            <ul className="pagination flex justify-center mt-6">
-                <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
+            {!loading && trips.length > 0 && (
+                <ul className="pagination flex justify-center mt-6">
+                    <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
                     <button
-                    className="page-link flex items-center justify-center"
-                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                    disabled={page === 1}
+                        className="page-link flex items-center justify-center"
+                        onClick={() => handlePageChange(Math.max(page - 1, 1))}
+                        disabled={page === 1}
                     >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 6l-6 6l6 6" /></svg>
-                    </button>
-                </li>
-
-                {[...Array(totalPages)].map((_, i) => {
-                const pageNumber = i + 1;
-                return (
-                    <li key={pageNumber} className={`page-item ${pageNumber === page ? 'active' : ''}`}>
-                    <button
-                        className={`page-link border-black text-black ${
-                        pageNumber === page ? 'bg-black text-white ring-2 ring-black' : ''
-                        }`}
-                        onClick={() => setPage(pageNumber)}
-                    >
-                        {pageNumber}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 6l-6 6l6 6" /></svg>
                     </button>
                     </li>
-                );
-                })}
 
-                <li className={`page-item ${!hasMore ? 'disabled' : ''}`}>
+                    {[...Array(totalPages)].map((_, i) => {
+                    const pageNumber = i + 1;
+                    return (
+                        <li key={pageNumber} className={`page-item ${pageNumber === page ? 'active' : ''}`}>
+                        <button
+                            className={`page-link border-black text-black ${
+                            pageNumber === page ? 'bg-black text-white ring-2 ring-black' : ''
+                            }`}
+                            onClick={() => handlePageChange(pageNumber)}
+                        >
+                            {pageNumber}
+                        </button>
+                        </li>
+                    );
+                    })}
+
+                    <li className={`page-item ${!hasMore ? 'disabled' : ''}`}>
                     <button
-                    className="page-link flex items-center justify-center"
-                    onClick={() => setPage((p) => p + 1)}
-                    disabled={!hasMore}
+                        className="page-link flex items-center justify-center"
+                        onClick={() => handlePageChange(page + 1)}
+                        disabled={!hasMore}
                     >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6l-6 6" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6l-6 6" /></svg>
                     </button>
-                </li>
+                    </li>
                 </ul>
-
-            {trips.length === 0 && !loading && !error && (
-                <div className="flex flex-col items-center justify-center py-20">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4">No Trips Yet</h2>
-                    <p className="text-gray-600 mb-6">Start planning your next adventure!</p>
-                </div>
-            )}
+                )}
 
             {showCreateModal && (
             <CreateTrip 
