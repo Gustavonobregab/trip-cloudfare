@@ -12,6 +12,9 @@ export default function CreateTrip({ onClose, onTripCreated }: Props) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [bookingRef, setBookingRef] = useState('');
+  const [importantNotes, setImportantNotes] = useState('');
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -53,7 +56,10 @@ export default function CreateTrip({ onClose, onTripCreated }: Props) {
           start_date: startDate,
           end_date: endDate,
           description,
-          photo_url: imageUrls
+          photo_url: imageUrls,
+          category,
+          booking_ref: bookingRef,
+          important_notes: importantNotes
         })
       });
 
@@ -157,6 +163,28 @@ export default function CreateTrip({ onClose, onTripCreated }: Props) {
           placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          className="mb-2 w-full border p-2 rounded"
+        />
+        <input
+          type="text"
+          placeholder="Category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="mb-2 w-full border p-2 rounded"
+        />
+
+        <input
+          type="text"
+          placeholder="Booking Reference"
+          value={bookingRef}
+          onChange={(e) => setBookingRef(e.target.value)}
+          className="mb-2 w-full border p-2 rounded"
+        />
+
+        <textarea
+          placeholder="Important Notes"
+          value={importantNotes}
+          onChange={(e) => setImportantNotes(e.target.value)}
           className="mb-2 w-full border p-2 rounded"
         />
   
