@@ -5,23 +5,26 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from 
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useRouter } from 'next/navigation';
-import { IconArrowLeft, IconCategory, IconGripVertical } from '@tabler/icons-react';
+import { IconArrowLeft, IconCategory, IconGripVertical, IconTrash } from '@tabler/icons-react';
 import { supabase } from '@/lib/supabaseClient';
 import { Modal } from '@tabler/core';
+import ConfirmModal from './ConfirmModal';
 
-function SortableItem({ item }: { item: any }) {
-    const {
+function SortableItem({ item, onDelete }: { item: any; onDelete: (id: string) => void }) {
+  const {
       attributes,
       listeners,
       setNodeRef,
       transform,
       transition,
     } = useSortable({ id: item.id });
-  
+    const [showConfirm, setShowConfirm] = useState(false);
+
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
     };
+    
 
     const router = useRouter();
 
@@ -30,8 +33,23 @@ function SortableItem({ item }: { item: any }) {
         window.open(item.location, '_blank', 'noopener,noreferrer');
       }
     };
+
+
+    const confirmDelete = async () => {
+      const res = await fetch('/api/itinerary/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id }),
+      });
+
+      if (res.ok) {
+        onDelete(item.id);
+        setShowConfirm(false);
+      }
+    };
   
     return (
+      <>
       <div
         ref={setNodeRef}
         style={style}
@@ -53,16 +71,39 @@ function SortableItem({ item }: { item: any }) {
         </span>
         {item.name}
       </div>
-        <div className="flex flex-col items-end justify-center text-right text-neutral-700 text-sm">
+      <div className="flex items-center gap-4 text-neutral-700 text-sm">
+        <div className="flex flex-col items-end text-right">
           <span>{item.date}</span>
           <span>{item.type}</span>
         </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowConfirm(true);
+          }}
+          className="text-red-500 hover:text-red-700"
+          title="Delete item"
+        >
+          <IconTrash size={18} />
+        </button>
       </div>
+      </div>
+      {showConfirm && (
+      <ConfirmModal
+        title="Delete itinerary item"
+        message="Are you sure you want to delete this item?"
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={() => setShowConfirm(false)}
+      />
+    )}
+    </>
     );
-  }
-  
-  export function ItineraryList({ trip, onAddItinerary, }: { trip: any; onAddItinerary: () => void; }) {
-    const sortedItems = [...(trip.itinerary_items || [])].sort((a, b) => a.position - b.position);
+}
+
+export function ItineraryList({ trip, onAddItinerary, }: { trip: any; onAddItinerary: () => void; }) {
+  const sortedItems = [...(trip.itinerary_items || [])].sort((a, b) => a.position - b.position);
     const [items, setItems] = useState(sortedItems);
 
     useEffect(() => {
@@ -110,14 +151,20 @@ function SortableItem({ item }: { item: any }) {
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
               {items.map((item) => (
-                <SortableItem key={item.id} item={item} />
-              ))}
+                <SortableItem 
+                  key={item.id} 
+                  item={item} 
+                  onDelete={(id) => setItems(prev => prev.filter(i => i.id !== id))}
+                />             
+                 ))}
             </SortableContext>
           </DndContext>
         ) : (
           <p className="text-sm text-black">No itinerary items found.</p>
         )}
       </div>
+
+      
       
     );
   }
