@@ -56,7 +56,7 @@ export default function AddItineraryModal({
           placeholder="Name"
           value={newItem.name}
           onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-          className="mb-2 w-full border border-gray-300 p-2 rounded text-gray-900 bg-white !text-gray-900 !bg-white !border-gray-300"
+          className="mb-2 w-full border  p-2 rounded !text-gray-900 !bg-white !border-gray-300"
           />
   
         <div className="relative mb-2 w-full">
