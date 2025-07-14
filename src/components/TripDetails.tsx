@@ -8,7 +8,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { useRouter } from 'next/navigation';
 import { IconArrowLeft, IconCategory, IconGripVertical } from '@tabler/icons-react';
 import { supabase } from '@/lib/supabaseClient';
-import { Modal } from '@tabler/core';
 import { ItineraryList } from './ItineraryList';
 import AddItineraryModal from './AddItineraryModal';
 

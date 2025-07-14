@@ -165,14 +165,34 @@ export default function CreateTrip({ onClose, onTripCreated }: Props) {
           onChange={(e) => setDescription(e.target.value)}
           className="mb-2 w-full border p-2 rounded"
         />
-        <input
-          type="text"
-          placeholder="Category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="mb-2 w-full border p-2 rounded"
-        />
+        
+       <div className="dropdown mb-2 w-full">
+          <a
+            className="btn w-full text-left dropdown-toggle"
+            data-bs-toggle="dropdown"
+            href="#"
+            role="button"
+            aria-expanded="false"
+          >
+            {category || 'Select category'}
+          </a>
+          <div className="dropdown-menu w-full">
+            {['Work', 'Vacation', 'Family', 'Friends', 'Other'].map((item) => (
+              <a
+                key={item}
+                href="#"
+                className="dropdown-item"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCategory(item);
+                }}
+              >
+                {item}
+              </a>
+            ))}
+          </div>
 
+        </div>
         <input
           type="text"
           placeholder="Booking Reference"
