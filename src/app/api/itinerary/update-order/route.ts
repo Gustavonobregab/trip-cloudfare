@@ -9,19 +9,22 @@ interface OrderItem {
 export async function POST(req: Request) {
   try {
     const body = await req.json() as OrderItem[];
-
+    console.log(body.length);
+    
     if (!Array.isArray(body)) {
       return NextResponse.json({ error: 'Invalid body format' }, { status: 400 });
     }
 
-    for (const item of body) {
-      if (!item.id || typeof item.position !== 'number') continue;
-
-      await supabase
+    const updates = body
+    .filter((item) => item.id && typeof item.position === 'number')
+    .map((item) =>
+      supabase
         .from('itinerary_items')
         .update({ position: item.position })
-        .eq('id', item.id);
-    }
+        .eq('id', item.id)
+    );
+
+    await Promise.all(updates);
 
     return NextResponse.json({ success: true });
   } catch (error) {

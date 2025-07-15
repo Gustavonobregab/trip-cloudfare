@@ -103,11 +103,11 @@ function SortableItem({ item, onDelete }: { item: any; onDelete: (id: string) =>
 }
 
 export function ItineraryList({ trip, onAddItinerary, }: { trip: any; onAddItinerary: () => void; }) {
-  const sortedItems = [...(trip.itinerary_items || [])].sort((a, b) => a.position - b.position);
-    const [items, setItems] = useState(sortedItems);
+  const sortedItems = [...(trip.itinerary_items || [])].sort((a, b) => Number(a.position) - Number(b.position));
+  const [items, setItems] = useState(sortedItems);
 
     useEffect(() => {
-      const newSortedItems = [...trip.itinerary_items].sort((a, b) => a.position - b.position);
+      const newSortedItems = [...trip.itinerary_items].sort((a, b) => Number(a.position) - Number(b.position));
       setItems(newSortedItems);
     }, [trip.itinerary_items]);
   
@@ -118,7 +118,6 @@ export function ItineraryList({ trip, onAddItinerary, }: { trip: any; onAddItine
         },
       })
     );
-  
     const handleDragEnd = async (event: any) => {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
@@ -126,20 +125,25 @@ export function ItineraryList({ trip, onAddItinerary, }: { trip: any; onAddItine
       const oldIndex = items.findIndex((item) => item.id === active.id);
       const newIndex = items.findIndex((item) => item.id === over.id);
     
-      const newItems = arrayMove(items, oldIndex, newIndex).map((item, index) => ({
-        ...item,
-        position: index + 1,
-      }));
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      const targetItem = newItems[newIndex];
     
-      setItems(newItems);
+      const before = newItems[newIndex - 1]?.position ?? 0;
+      const after = newItems[newIndex + 1]?.position ?? before + 1000;
+      const newPosition = (before + after) / 2;
+    
+      const updatedItem = { ...targetItem, position: newPosition };
+    
+      const updatedList = [...newItems];
+      updatedList[newIndex] = updatedItem;
+      setItems(updatedList);
     
       await fetch('/api/itinerary/update-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newItems.map(({ id, position }) => ({ id, position }))),
+        body: JSON.stringify([{ id: updatedItem.id, position: newPosition }]),
       });
     };
-    
   
     return (
       <div className="space-y-3">
